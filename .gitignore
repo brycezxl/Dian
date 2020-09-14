@@ -8,3 +8,7 @@ results
 experiment.py
 nohup.out
 rec.txt
+ckp*
+log*
+*.pyc
+*.zip
