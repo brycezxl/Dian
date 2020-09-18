@@ -14,7 +14,7 @@ class ConfigCalling(object):
 
         self.input_size = (512, 385)
         self.USE_CUDA = torch.cuda.is_available()
-        self.print_interval = 1000
+        self.print_interval = 200
         self.device_ids = [0]
         self.num_workers = 16
         self.NUM_EPOCHS = 10

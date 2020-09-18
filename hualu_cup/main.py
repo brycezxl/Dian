@@ -28,10 +28,9 @@ if __name__ == "__main__":
     else:
         raise ValueError("Task must be calling or smoking!")
 
-    print("Loading model...")
+    print("Start loading data")
     model = WSDAN(num_classes=2, M=32, net='inception_mixed_6e', pretrained=False).cuda()
     # model = resnet.model_init(device_ids=cfg.device_ids)
-    print("Loading data...")
 
     if args.mode == "train":
         model.train()

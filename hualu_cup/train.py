@@ -8,7 +8,7 @@ from torch import nn, optim
 from tqdm import tqdm
 
 from eval import evaluate
-from utils.utils import batch_augment, load_model
+from utils.utils import batch_augment
 
 
 def train(model, train_loader, eval_loader, cfg):
@@ -76,7 +76,7 @@ def train(model, train_loader, eval_loader, cfg):
             optimizer.step()
 
             running_loss += loss.item()
-            if i % cfg.print_interval == 0:
+            if i % cfg.print_interval == 0 and i != 0:
                 batch_time = time() - t
                 print("==> [train] epoch {}, batch {}, global_step {}. loss for 10 batches: {}, "
                       "time for 10 batches: {}s".format(epoch, i, global_step, running_loss, batch_time))
@@ -84,26 +84,25 @@ def train(model, train_loader, eval_loader, cfg):
                 running_loss = 0.0
                 t = time()
             global_step += 1
-        # TODO add save condition eg. acc
 
-        if epoch % cfg.evaluate_epoch == 0:
-            torch.save({
-                "epoch": epoch,
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "global_step": global_step,
-                'loss': loss,
-            }, os.path.join(cfg.save_path, "train_epoch_" + str(epoch) + ".tar"))
-            print("==> [eval] on train dataset")
-            acc_on_train, precision_on_train, recall_on_train = evaluate(train_loader, epoch, model)
-            print("==> [eval] on valid dataset")
-            acc_on_valid, precision_on_valid, recall_on_valid = evaluate(eval_loader, epoch, model)
-            writer.add_scalar("scalar/accuracy_on_train", acc_on_train, global_step, time())
-            writer.add_scalar("scalar/accuracy_on_valid", acc_on_valid, global_step, time())
-            writer.add_scalar("scalar/precision_on_train", precision_on_train, global_step, time())
-            writer.add_scalar("scalar/precision_on_valid", precision_on_valid, global_step, time())
-            writer.add_scalar("scalar/recall_on_train", recall_on_train, global_step, time())
-            writer.add_scalar("scalar/recall_on_valid", recall_on_valid, global_step, time())
+        # TODO add save condition eg. acc
+        torch.save({
+            "epoch": epoch,
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "global_step": global_step,
+            'loss': loss,
+        }, os.path.join(cfg.save_path, "train_epoch_" + str(epoch) + ".tar"))
+        print("==> [eval] on train dataset")
+        acc_on_train, precision_on_train, recall_on_train = evaluate(train_loader, epoch, model)
+        print("==> [eval] on valid dataset")
+        acc_on_valid, precision_on_valid, recall_on_valid = evaluate(eval_loader, epoch, model)
+        writer.add_scalar("scalar/accuracy_on_train", acc_on_train, global_step, time())
+        writer.add_scalar("scalar/accuracy_on_valid", acc_on_valid, global_step, time())
+        writer.add_scalar("scalar/precision_on_train", precision_on_train, global_step, time())
+        writer.add_scalar("scalar/precision_on_valid", precision_on_valid, global_step, time())
+        writer.add_scalar("scalar/recall_on_train", recall_on_train, global_step, time())
+        writer.add_scalar("scalar/recall_on_valid", recall_on_valid, global_step, time())
 
     writer.close()
     print("Finish training.")

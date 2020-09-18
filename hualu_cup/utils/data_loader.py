@@ -7,6 +7,7 @@ import torchvision
 from PIL import Image
 from PIL import ImageFile
 from torch.utils.data import Dataset
+import cv2
 import shutil
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -30,6 +31,11 @@ class BinaryClassifierDataset(torch.utils.data.Dataset):
         try:
             img = PIL.Image.open(self.img_list[idx])
             img = self.transforms(img)
+            if img.size(0) == 1:
+                img = cv2.imread(self.img_list[idx], 0)
+                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+                img = self.transforms(img)
         except OSError:
             print("OSError at combined_mask path ", self.img_list[idx])
             return None
@@ -51,7 +57,7 @@ def build_dataset_train(data_path, input_size, task):
 
 
 def build_dataset_eval(data_path, input_size, task):
-    return BinaryClassifierDataset(os.path.join(data_path, "train"), input_size, task)
+    return BinaryClassifierDataset(os.path.join(data_path, "eval"), input_size, task)
 
 
 def build_dataset_test(data_path, input_size, task):
@@ -59,17 +65,23 @@ def build_dataset_test(data_path, input_size, task):
 
 
 def split_dataset():
-    train_path = "./data/train/"
-    eval_path = "./data/eval/"
-    if os.path.exists(eval_path):
-        os.remove(eval_path)
-    os.mkdir(eval_path)
+    train_path = "../data/train/"
+    eval_path = "../data/eval/"
+    if not os.path.exists(eval_path):
+        os.mkdir(eval_path)
+    if not os.path.exists(eval_path + "calling_images/"):
+        os.mkdir(eval_path + "calling_images/")
+    if not os.path.exists(eval_path + "normal_images/"):
+        os.mkdir(eval_path + "normal_images/")
+    if not os.path.exists(eval_path + "smoking_images/"):
+        os.mkdir(eval_path + "smoking_images/")
+
     for p in ["calling_images/", "normal_images/", "smoking_images/"]:
-        img_list = glob(os.path.join(train_path + p, "*", "*.jpg"))
+        img_list = glob(os.path.join(train_path + p, "*.jpg"))
         random.shuffle(img_list)
-        img_list = img_list[:int(0.8 * len(img_list))]
+        img_list = img_list[:int(0.2 * len(img_list))]
         for img in img_list:
-            new_img = img
+            new_img = img.replace("train", "eval")
             shutil.move(img, new_img)
 
 
