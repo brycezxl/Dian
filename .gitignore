@@ -12,3 +12,6 @@ ckp*
 log*
 *.pyc
 *.zip
+data
+*.jpg
+*.png
