@@ -14,15 +14,15 @@ from utils.utils import batch_augment, load_model
 def train(model, train_loader, eval_loader, cfg):
     model.train()
     print("Start training")
-    writer = SummaryWriter(log_dir=cfg.log_path)
+    writer = SummaryWriter(log_dir=cfg.save_path)
 
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=0.0005, amsgrad=True)
     current_epoch = 0
     global_step = 0
     loss = 0
-    if cfg.load_ckp:
-        model, optimizer, current_epoch, global_step, loss = load_model(model, optimizer, cfg.ckp_path)
+    # if cfg.load_ckp:
+    #     model, optimizer, current_epoch, global_step, loss = load_model(model, optimizer, cfg.ckp_path)
 
     # feature_center = torch.zeros(2, cfg_.num_attentions * model_.num_features)
     # center_loss = CenterLoss()
