@@ -77,13 +77,13 @@ def detect(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cfg', type=str, default='/home/zxl/traffic/data_argument/cfg/yolov3-spp.cfg',
+    parser.add_argument('--cfg', type=str, default='/home/zxl/traffic/fine-grained/data_argument/cfg/yolov3-spp.cfg',
                         help='cfg file path')
-    parser.add_argument('--data-cfg', type=str, default='/home/zxl/traffic/data_argument/cfg/coco.data',
+    parser.add_argument('--data-cfg', type=str, default='/home/zxl/traffic/fine-grained/data_argument/cfg/coco.data',
                         help='coco.data file path')
-    parser.add_argument('--weights', type=str, default='/home/zxl/traffic/data_argument/weights/yolov3-spp.pt',
+    parser.add_argument('--weights', type=str, default='/home/zxl/traffic/fine-grained/data_argument/weights/yolov3-spp.pt',
                         help='path to weights file')
-    parser.add_argument('--images', type=str, default='/data/Traffic_datas/6011TrainAndValid/train/VALID',
+    parser.add_argument('--images', type=str, default='/home/zxl/traffic/hualu_cup/data/train/calling_images',
                         help='path to images')
     parser.add_argument('--img-size', type=int, default=416, help='size of each image dimension')
     parser.add_argument('--conf-thres', type=float, default=0.5, help='object confidence threshold')

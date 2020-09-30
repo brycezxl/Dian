@@ -12,7 +12,7 @@ from utils import data_loader
 
 def init_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', type=str, default="test", help='train/test')
+    parser.add_argument('--mode', type=str, default="train", help='train/test')
     parser.add_argument('--task', type=str, default="calling", help='calling/smoking')
     return parser.parse_args()
 
