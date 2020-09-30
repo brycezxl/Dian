@@ -7,22 +7,22 @@ import random
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as f
 import torchvision.transforms as transforms
 
 
-def load_model(model_, optimizer_, ckp_path_):
-    checkpoint = torch.load(ckp_path_)
-    model_.load_state_dict(checkpoint["model_state_dict"])
-    optimizer_.load_state_dict(checkpoint["optimizer_state_dict"])
-    epoch_ = checkpoint["epoch"]
-    loss_ = checkpoint["loss"]
-    global_step_ = checkpoint["global_step"]
+def load_model(model, optimizer, ckp_path):
+    checkpoint = torch.load(ckp_path)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    epoch = checkpoint["epoch"]
+    loss = checkpoint["loss"]
+    global_step = checkpoint["global_step"]
     # try:
     #     global_step_ = checkpoint["global_step"]
     # except:
     #     global_step_ = 0
-    return model_, optimizer_, epoch_, global_step_, loss_
+    return model, optimizer, epoch, global_step, loss
 
 
 ##############################################
@@ -47,6 +47,8 @@ class Metric(object):
 class AverageMeter(Metric):
     def __init__(self, name='loss'):
         self.name = name
+        self.scores = 0.
+        self.total_num = 0.
         self.reset()
 
     def reset(self):
@@ -64,6 +66,8 @@ class TopKAccuracyMetric(Metric):
         self.name = 'topk_accuracy'
         self.topk = topk
         self.maxk = max(topk)
+        self.corrects = np.zeros(len(self.topk))
+        self.num_samples = 0.
         self.reset()
 
     def reset(self):
@@ -103,6 +107,7 @@ class ModelCheckpoint(Callback):
         self.savepath = savepath
         self.monitor = monitor
         self.mode = mode
+        self.best_score = float('-inf')
         self.reset()
         super(ModelCheckpoint, self).__init__()
 
@@ -156,7 +161,7 @@ class ModelCheckpoint(Callback):
 # augment function
 ##################################
 def batch_augment(images, attention_map, mode='crop', theta=0.5, padding_ratio=0.1):
-    batches, _, imgH, imgW = images.size()
+    batches, _, img_h, img_w = images.size()
 
     if mode == 'crop':
         crop_images = []
@@ -167,16 +172,16 @@ def batch_augment(images, attention_map, mode='crop', theta=0.5, padding_ratio=0
             else:
                 theta_c = theta * atten_map.max()
 
-            crop_mask = nn.functional.interpolate(atten_map, size=(imgH, imgW)) >= theta_c
+            crop_mask = nn.functional.interpolate(atten_map, size=(img_h, img_w)) >= theta_c
             nonzero_indices = torch.nonzero(crop_mask[0, 0, ...])
-            height_min = max(int(nonzero_indices[:, 0].min().item() - padding_ratio * imgH), 0)
-            height_max = min(int(nonzero_indices[:, 0].max().item() + padding_ratio * imgH), imgH)
-            width_min = max(int(nonzero_indices[:, 1].min().item() - padding_ratio * imgW), 0)
-            width_max = min(int(nonzero_indices[:, 1].max().item() + padding_ratio * imgW), imgW)
+            height_min = max(int(nonzero_indices[:, 0].min().item() - padding_ratio * img_h), 0)
+            height_max = min(int(nonzero_indices[:, 0].max().item() + padding_ratio * img_h), img_h)
+            width_min = max(int(nonzero_indices[:, 1].min().item() - padding_ratio * img_w), 0)
+            width_max = min(int(nonzero_indices[:, 1].max().item() + padding_ratio * img_w), img_w)
 
             crop_images.append(
                 nn.functional.interpolate(images[batch_index:batch_index + 1, :, height_min:height_max, width_min:width_max],
-                                    size=(imgH, imgW)))
+                                    size=(img_h, img_w)))
         crop_images = torch.cat(crop_images, dim=0)
         return crop_images
 
@@ -189,7 +194,7 @@ def batch_augment(images, attention_map, mode='crop', theta=0.5, padding_ratio=0
             else:
                 theta_d = theta * atten_map.max()
 
-            drop_masks.append(nn.functional.interpolate(atten_map, size=(imgH, imgW)) < theta_d)
+            drop_masks.append(nn.functional.interpolate(atten_map, size=(img_h, img_w)) < theta_d)
         drop_masks = torch.cat(drop_masks, dim=0)
         drop_images = images * drop_masks.float()
         return drop_images
