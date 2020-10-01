@@ -23,8 +23,15 @@ class BinaryClassifierDataset(torch.utils.data.Dataset):
         else:
             self.img_list = glob(os.path.join(img_path, "*", "*.jpg"))
         if transforms is None:
-            self.transforms = torchvision.transforms.Compose([torchvision.transforms.Resize(input_size),
-                                                              torchvision.transforms.ToTensor()])
+            mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+            self.transforms = torchvision.transforms.Compose([
+                torchvision.transforms.Resize((input_size[0], input_size[1])),  # 等比填充缩放
+                torchvision.transforms.RandomCrop(input_size[0], input_size[1]),
+                torchvision.transforms.RandomHorizontalFlip(),
+                # torchvision.transforms.RandomGaussianBlur(),
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize(mean=mean, std=std),
+            ])
         else:
             self.transforms = transforms
 
@@ -34,12 +41,11 @@ class BinaryClassifierDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         try:
             img = PIL.Image.open(self.img_list[idx])
-            img = self.transforms(img)
-            if img.size(0) == 1:
+            if img.layers == 1:
                 img = cv2.imread(self.img_list[idx], 0)
                 img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
                 img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-                img = self.transforms(img)
+            img = self.transforms(img)
         except OSError:
             print("OSError at combined_mask path ", self.img_list[idx])
             return None

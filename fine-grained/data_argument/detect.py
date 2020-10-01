@@ -8,6 +8,10 @@ from utils.datasets import *
 from utils.utils import *
 
 
+# detection object, stored in /data/coco.names
+OBJECT = 0  # car: 2, person: 0
+
+
 def detect(
         cfg,
         data_cfg,
@@ -53,15 +57,15 @@ def detect(
             # Rescale boxes from 416 to true image size
             scale_coords(img_size, detections[:, :4], im0.shape).round()
 
-            if (detections[:, -1] == 2).sum() == 0:
+            if (detections[:, -1] == OBJECT).sum() == 0:
                 continue
             # create a new array to save car detections
-            cars_detection = torch.zeros((detections[:, -1] == 2).sum(), 7)
+            cars_detection = torch.zeros((detections[:, -1] == OBJECT).sum(), 7)
             count = 0
 
             # save all cars
             for c in range(detections.size(0)):
-                if int(detections[c, -1]) == 2:
+                if int(detections[c, -1]) == OBJECT:
                     cars_detection[count, :] = detections[c, :]
                     count += 1
 

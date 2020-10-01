@@ -8,6 +8,7 @@ from models import *
 from test import test
 from train import train
 from utils import data_loader
+from torch import nn
 
 
 def init_args():
@@ -24,7 +25,13 @@ if __name__ == "__main__":
     cfg = Config(args)
 
     print("Start loading data")
-    model = WSDAN(num_classes=2, M=32, net='inception_mixed_6e', pretrained=False).cuda()
+    # model = WSDAN(num_classes=2, M=32, net='inception_mixed_6e', pretrained=False).cuda()
+    model = resnext101_32x8d(pretrained=True, progress=True)
+    model.fc = nn.Sequential(
+        nn.Dropout(0.5),
+        nn.Linear(2048, 2)
+    )
+    model.cuda()
 
     if args.mode == "train":
         train_dataset = data_loader.build_dataset_train(cfg.data_path, cfg.input_size, args.task)

@@ -2,21 +2,17 @@ import torch
 import torch.utils.data
 from torch import nn
 from tqdm import tqdm
-
+from utils.map import MAP, EvalMAP
 from utils.utils import batch_augment
 from utils.utils import load_model
 from torch import optim
+from torch.nn.functional import softmax
 
 
-def evaluate(data_loader, model, calling_ckp_path, smoking_ckp_path):
-
+def evaluate(data_loader, epoch, model):
     with torch.no_grad():
-        
-        optimizer = torch.optim.Adagrad(model.parameters())
-        model_calling, _, _, _, _ = load_model(model, optimizer, calling_ckp_path)
-        model_smoking, _, _, _, _ = load_model(model, optimizer, smoking_ckp_path)
-        model_calling.eval()
-        model_smoking.eval()
+
+        # meter = EvalMAP()
 
         test_loss, correct, total, tp, fp, tn, fn = 0, 0, 0, 0, 0, 0, 0
         criterion = torch.nn.CrossEntropyLoss()
@@ -25,13 +21,12 @@ def evaluate(data_loader, model, calling_ckp_path, smoking_ckp_path):
             image = data["image"].cuda()
             label = data["label"].cuda()
 
-            y_pred_raw, _, attention_map = model(image)
-            crop_images = batch_augment(image, attention_map, mode='crop', theta=0.1, padding_ratio=0.05)
-            y_pred_crop, _, _ = model(crop_images)
-            y_pred = (y_pred_raw + y_pred_crop) / 2.
-
-            loss_ = criterion(y_pred, label)
-            test_loss += loss_.item()
+            # call
+            y_pred = model(image)
+            loss = criterion(y_pred, label) / 2
+            # predict = softmax(y_pred, dim=-1)
+            # for i in range(predict.size(0)):
+            #     meter.update(predict[i, :], label[i])
 
             _, predict = y_pred.max(1)
             total += label.size(0)
@@ -43,6 +38,7 @@ def evaluate(data_loader, model, calling_ckp_path, smoking_ckp_path):
         acc = 100. * correct / total
         precision = 100.0 * tp / float(tp + fp)
         recall = 100.0 * tp / float(tp + fn)
-        print("==> [evaluate] loss = {}, acc = {}, precision = {}, recall = {}".format(test_loss, acc,
-                                                                                                 precision, recall))
+        # m_ap = meter.get()
+        print("==> [evaluate] loss = %.3f, acc = %.3f, precision = %.3f, recall = %.3f"
+              "" % (loss, acc, precision, recall))
     return acc, precision, recall
