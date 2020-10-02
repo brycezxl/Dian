@@ -1,6 +1,5 @@
 import math
 import os
-import time as ti
 from time import time
 
 import torch
@@ -10,7 +9,7 @@ from torch import optim
 from tqdm import tqdm
 
 from eval import evaluate
-from models.label_smooth_ce_loss import LabelSmoothCELoss
+from models.label_smooth_ce_loss import LabelSmoothCELoss, WeightedLabelSmoothCELoss
 
 
 def train(model, train_loader, eval_loader, args):
@@ -98,7 +97,6 @@ def train(model, train_loader, eval_loader, args):
                 'loss': loss,
             }, os.path.join(args.save_path, "%.4f" % best_map + ".tar"))
             print("==> [best] mAP: %.3f" % best_map)
-        ti.sleep(0.1)
 
     writer.close()
     print("Finish training.")
