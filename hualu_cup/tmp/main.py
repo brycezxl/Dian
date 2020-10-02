@@ -16,15 +16,16 @@ def init_args():
     # parser.add_argument('--mode', type=str, default="test", help='train/test')
     parser.add_argument('--batch-size', type=int, default=16)
     parser.add_argument('--lr', type=float, default=1e-4)
-    parser.add_argument('--model', type=str, default="resnet18")
+    # parser.add_argument('--model', type=str, default="resnet18")
     # parser.add_argument('--model', type=str, default="resnext101")
+    parser.add_argument('--model', type=str, default="resnext_wsl")
 
     parser.add_argument('--print-interval', type=int, default=9999)
     parser.add_argument('--num-attentions', type=int, default=8)
     parser.add_argument('--input-size', type=tuple, default=(224, 224))
     parser.add_argument('--beta', type=float, default=5e-2)
     parser.add_argument('--num-workers', type=int, default=16)
-    parser.add_argument('--num-epochs', type=float, default=15)
+    parser.add_argument('--num-epochs', type=float, default=20)
 
     parser.add_argument('--data-path', type=str, default="./data/")
     parser.add_argument('--ckp-path', type=str, default="./log/train.tar")

@@ -19,7 +19,7 @@ def test(data_loader, model, ckp_path):
         threshold = 0.5
         outputs = []
 
-        for i, data in tqdm(enumerate(data_loader)):
+        for i, data in tqdm(enumerate(data_loader), total=len(data_loader)):
             image = data["image"].cuda()
             name = data["name"]
 
