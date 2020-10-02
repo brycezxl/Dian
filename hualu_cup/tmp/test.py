@@ -60,7 +60,7 @@ def test(data_loader, model, ckp_path):
                     category = "normal"
                     score = normal[j]
 
-                outputs.append({"name": name[j], "category": category, "score": float(score)})
+                outputs.append({"image_name": name[j], "category": category, "score": float(score)})
 
         with open("./log/result.json", "w+") as f:
             json.dump(outputs, f)

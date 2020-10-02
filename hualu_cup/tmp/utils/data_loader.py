@@ -1,6 +1,7 @@
 import os
 import random
 import shutil
+import warnings
 from glob import glob
 
 import PIL
@@ -10,7 +11,7 @@ import torchvision
 from PIL import Image
 from PIL import ImageFile
 from torch.utils.data import Dataset
-import warnings
+
 warnings.filterwarnings('ignore')
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
