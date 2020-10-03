@@ -83,13 +83,14 @@ def train(model, train_loader, eval_loader, args):
 
         if map_on_valid > best_map:
             best_map = map_on_valid
-            torch.save({
-                "epoch": epoch,
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "global_step": global_step,
-                'loss': loss,
-            }, os.path.join(args.save_path, "%.5f" % best_map + ".tar"))
+            if float(map_on_valid) > 0.6:
+                torch.save({
+                    "epoch": epoch,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "global_step": global_step,
+                    'loss': loss,
+                }, os.path.join(args.save_path, "%.5f" % best_map + ".tar"))
             print("==> [best] mAP: %.5f" % best_map)
 
     writer.close()
