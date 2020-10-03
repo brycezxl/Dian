@@ -13,7 +13,6 @@ from models.label_smooth_ce_loss import LabelSmoothCELoss
 
 
 def train(model, train_loader, eval_loader, args):
-
     model.train()
     print("Start training")
     writer = SummaryWriter(log_dir=args.save_path)
@@ -35,13 +34,20 @@ def train(model, train_loader, eval_loader, args):
     for epoch in range(0, args.num_epochs, 1):
         running_loss = 0.0
         t = time.time()
-
         for i, data in enumerate(tqdm(train_loader)):
             image = data["image"].cuda()
             label = data["label"].cuda()
 
             scheduler.step()
             optimizer.zero_grad()
+
+            # y_pred_raw, feature_matrix, attention_map = model(image)
+            # with torch.no_grad(): # Attention Cropping
+            #     crop_images = batch_augment(image, attention_map[:, :1, :, :], mode='crop', theta=(0.4, 0.6),
+            #                                 padding_ratio=0.1)
+            # y_pred_crop, _, _ = model(crop_images)  # crop images forward
+            # loss = criterion(y_pred_raw, label) / 3. + \
+            #     criterion(y_pred_crop, label) / 3
 
             predict = model(image)
             loss = criterion(predict, label)

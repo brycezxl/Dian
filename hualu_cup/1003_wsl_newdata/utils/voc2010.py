@@ -2,11 +2,9 @@
 from __future__ import division
 
 from collections import defaultdict
-
-import mxnet as mx
 import numpy as np
+import mxnet as mx
 from mxnet.metric import EvalMetric
-
 
 class VOCMApMetric(EvalMetric):
     """

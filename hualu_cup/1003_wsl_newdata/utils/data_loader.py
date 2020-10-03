@@ -21,10 +21,8 @@ class BinaryClassifierDataset(torch.utils.data.Dataset):
         self.mode = mode
         if self.mode == 'test':
             self.img_list = glob(os.path.join(img_path, "*.jpg"))
-            self.img_list += glob(os.path.join(img_path, "*.png"))
         else:
             self.img_list = glob(os.path.join(img_path, "*", "*.jpg"))
-            self.img_list += glob(os.path.join(img_path, "*", "*.png"))
         if argument_path:
             self.img_list += glob(os.path.join("./data/old_train", "*", "*.jpg"))
         if transforms is None:

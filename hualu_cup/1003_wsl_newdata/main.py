@@ -15,10 +15,10 @@ def init_args():
     parser.add_argument('--mode', type=str, default="train", help='train/test')
     # parser.add_argument('--mode', type=str, default="test", help='train/test')
     parser.add_argument('--batch-size', type=int, default=16)
-    parser.add_argument('--lr', type=float, default=3e-4)
-    # parser.add_argument('--model', type=str, default="resnet18")
+    parser.add_argument('--lr', type=float, default=1e-4)
+    parser.add_argument('--model', type=str, default="resnet18")
     # parser.add_argument('--model', type=str, default="resnext101")
-    parser.add_argument('--model', type=str, default="resnext_wsl")
+    # parser.add_argument('--model', type=str, default="resnext_wsl")
 
     parser.add_argument('--print-interval', type=int, default=9999)
     parser.add_argument('--num-attentions', type=int, default=8)
@@ -36,6 +36,7 @@ def init_args():
     return parser.parse_args()
 
 
+# TODO automatically log train process to local file / tensorboard
 if __name__ == "__main__":
 
     args = init_args()
@@ -75,7 +76,14 @@ if __name__ == "__main__":
                                                   num_workers=args.num_workers, shuffle=True, drop_last=True)
         train(model, train_loader, eval_loader, args)
 
+    # if args.mode == "eval":
+    #     eval_dataset = data_loader.build_dataset_eval(cfg.data_path, cfg.input_size, None)
+    #     eval_loader = torch.utils.data.DataLoader(eval_dataset, batch_size=cfg.batch_size,
+    #                                               num_workers=cfg.num_workers, shuffle=True, drop_last=True)
+    #     evaluate(eval_loader, model, cfg.calling_ckp_path, cfg.smoking_ckp_path)
+
     if args.mode == "test":
         test_dataset = data_loader.build_dataset_test(args.data_path, args.input_size)
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
+
         test(test_loader, model, args.ckp_path)

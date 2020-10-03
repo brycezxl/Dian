@@ -1,17 +1,19 @@
 import torch
 import torch.utils.data
+from torch import nn
 from torch.nn.functional import softmax
 
 from utils.voc2010 import VOCMApMetric
 
 
-def evaluate(data_loader, model, criterion):
+def evaluate(data_loader, model):
 
     with torch.no_grad():
 
         model.eval()
+        criterion = torch.nn.CrossEntropyLoss()
         meter = VOCMApMetric(class_names=("normal", "smoke", "call"))
-        total_loss, correct, total, tp, fp, tn, fn = 0, 0, 0, 0, 0, 0, 0
+        correct, total, tp, fp, tn, fn = 0, 0, 0, 0, 0, 0
 
         for data in data_loader:
             image = data["image"].cuda()
@@ -28,7 +30,6 @@ def evaluate(data_loader, model, criterion):
                          gt_bboxes.cpu().numpy(), label.cpu().numpy())
 
             _, predict = predict.max(1)
-            total_loss += loss
             total += label.size(0)
             correct += predict.eq(label).sum().item()
             tp += torch.sum(predict & label)
@@ -40,8 +41,7 @@ def evaluate(data_loader, model, criterion):
         precision = (float(tp) + 1e-6) / (float(tp + fp) + 1e-3)
         recall = (float(tp) + 1e-6) / (float(tp + fn) + 1e-3)
         m_ap_normal, m_ap_smoke, m_ap_calling, m_ap = meter.get()[1]
-        print("mAP = %.3f, mAP_n = %.3f, mAP_s = %.3f, mAP_c = %.3f, "
-              "loss = %.3f, acc = %.3f, p = %.3f, r = %.3f"
+        print("mAP = %.3f, mAP normal = %.3f, mAP smoke = %.3f, mAP call = %.3f, "
+              "loss = %.3f, acc = %.3f, precision = %.3f, recall = %.3f"
               "" % (m_ap, m_ap_normal, m_ap_smoke, m_ap_calling, loss, acc, precision, recall))
-
-    return m_ap, acc, precision, recall, total_loss / len(data_loader)
+    return m_ap, acc, precision, recall
