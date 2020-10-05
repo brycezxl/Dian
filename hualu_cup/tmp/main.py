@@ -8,17 +8,19 @@ from test import test
 from train import train
 from utils import data_loader
 
+CUDA_VISIBLE_DEVICES = 1
+
 
 def init_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--mode', type=str, default="train", help='train/test')
     # parser.add_argument('--mode', type=str, default="test", help='train/test')
-    parser.add_argument('--batch-size', type=int, default=8)
-    parser.add_argument('--lr', type=float, default=3e-5)
-    parser.add_argument('--model', type=str, default="resnet18")
+    parser.add_argument('--batch-size', type=int, default=64)
+    parser.add_argument('--lr', type=float, default=1e-4)
+    # parser.add_argument('--model', type=str, default="resnet18")
     # parser.add_argument('--model', type=str, default="resnext101")
-    # parser.add_argument('--model', type=str, default="resnext_wsl")
+    parser.add_argument('--model', type=str, default="resnext_wsl")
 
     parser.add_argument('--print-interval', type=int, default=9999)
     parser.add_argument('--num-attentions', type=int, default=8)

@@ -43,4 +43,5 @@ def evaluate(data_loader, model, criterion):
         print("mAP = %.3f, mAP_n = %.3f, mAP_s = %.3f, mAP_c = %.3f, "
               "loss = %.3f, acc = %.3f, p = %.3f, r = %.3f"
               "" % (m_ap, m_ap_normal, m_ap_smoke, m_ap_calling, loss, acc, precision, recall))
+
     return m_ap, acc, precision, recall, total_loss / len(data_loader)
