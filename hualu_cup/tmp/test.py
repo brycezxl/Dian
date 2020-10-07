@@ -28,27 +28,25 @@ def test(data_loader, model, ckp_path):
             idx_to_name = ['normal', 'smoking', 'calling']
 
             for j in range(image.size(0)):
-                if output[j, 1] > 0.4 and output[j, 2] > 0.4 and output[j, 0] < 0.2:
-                    category = "smoking_calling"
-                    score = output[j, 1] + output[j, 2]
-                else:
-                    idx = torch.argmax(output[j, :])
-                    category = idx_to_name[idx]
-                    score = output[j, idx]
+
+                idx = torch.argmax(output[j, :])
+                category = idx_to_name[idx]
+                score = output[j, idx]
 
                 outputs.append({"category": category, "image_name": name[j], "score": round(float(score), 5)})
 
     outputs.sort(key=lambda x: int(x['image_name'].split('.')[0]))
     with open("./log/result.json", "w+") as f:
-        f.write('[')
-        for i in range(len(outputs)):
-            f.write('{\"image_name\": \"' + outputs[i]["image_name"] +
-                    '\", \"category\": \"' + outputs[i]["category"] +
-                    '\", \"score\": ' + str(outputs[i]["score"]) + '}')
-            if i != len(outputs) - 1:
-                f.write(',\n')
-            else:
-                f.write(']')
+        # f.write('[')
+        # for i in range(len(outputs)):
+        #     f.write('{\"image_name\": \"' + outputs[i]["image_name"] +
+        #             '\", \"category\": \"' + outputs[i]["category"] +
+        #             '\", \"score\": ' + str(outputs[i]["score"]) + '}')
+        #     if i != len(outputs) - 1:
+        #         f.write(',\n')
+        #     else:
+        #         f.write(']')
+        json.dump(outputs, f, indent=4)
     print("Done.")
 
     return 0

@@ -84,7 +84,7 @@ def train(model, train_loader, eval_loader, args):
 
         if map_on_valid > best_map:
             best_map = map_on_valid
-            if float(map_on_valid) > 0.6:
+            if float(map_on_valid) > 0.85:
                 torch.save({
                     "epoch": epoch,
                     "model_state_dict": model.state_dict(),

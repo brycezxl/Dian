@@ -31,10 +31,11 @@ class BinaryClassifierDataset(torch.utils.data.Dataset):
         if transforms is None:
             mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
             self.transforms = torchvision.transforms.Compose([
-                Resize((input_size[0], input_size[1])),  # 等比填充缩放
-                torchvision.transforms.RandomCrop(input_size[0], input_size[1]),
+                torchvision.transforms.Resize(size=input_size),  # 缩放
+                # Resize((input_size[0], input_size[1])),  # 等比填充缩放
+                torchvision.transforms.RandomCrop(size=input_size),
                 torchvision.transforms.RandomHorizontalFlip(),
-                RandomGaussianBlur(),
+                # RandomGaussianBlur(),
                 torchvision.transforms.ToTensor(),
                 torchvision.transforms.Normalize(mean=mean, std=std),
             ])
