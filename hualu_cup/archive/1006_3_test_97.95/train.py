@@ -5,7 +5,7 @@ import time
 import torch
 import torch.utils.data
 from tensorboardX import SummaryWriter
-from torch import optim
+from torch import optim, nn
 from tqdm import tqdm
 
 from eval import evaluate
@@ -18,14 +18,15 @@ def train(model, train_loader, eval_loader, args):
     print("Start training")
     writer = SummaryWriter(log_dir=args.save_path)
 
-    criterion = LabelSmoothCELoss()
+    criterion = nn.CrossEntropyLoss()
+    # criterion = LabelSmoothCELoss()
     # criterion = WeightedLabelSmoothCELoss(1978, 2168, 1227)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=0.0005, amsgrad=True)
-    warm_up_epochs = 5
-    warm_up_with_cosine_lr = lambda e: e / warm_up_epochs if e <= warm_up_epochs else 0.5 * (
-            math.cos((e - warm_up_epochs) / (args.num_epochs - warm_up_epochs) * math.pi) + 1)
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warm_up_with_cosine_lr)  # CosineAnnealingLR
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    # warm_up_epochs = 5
+    # warm_up_with_cosine_lr = lambda e: e / warm_up_epochs if e <= warm_up_epochs else 0.5 * (
+    #         math.cos((e - warm_up_epochs) / (args.num_epochs - warm_up_epochs) * math.pi) + 1)
+    # scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warm_up_with_cosine_lr)  # CosineAnnealingLR
 
     # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
@@ -40,7 +41,7 @@ def train(model, train_loader, eval_loader, args):
             image = data["image"].cuda()
             label = data["label"].cuda()
 
-            scheduler.step()
+            # scheduler.step()
             optimizer.zero_grad()
 
             predict = model(image)
@@ -83,7 +84,7 @@ def train(model, train_loader, eval_loader, args):
 
         if map_on_valid > best_map:
             best_map = map_on_valid
-            if float(map_on_valid) > 0.6:
+            if float(map_on_valid) > 0.85:
                 torch.save({
                     "epoch": epoch,
                     "model_state_dict": model.state_dict(),
