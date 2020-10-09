@@ -16,9 +16,9 @@ def init_args():
     # parser.add_argument('--mode', type=str, default="test", help='train/test')
     parser.add_argument('--batch-size', type=int, default=8)
     parser.add_argument('--lr', type=float, default=3e-5)
-    parser.add_argument('--model', type=str, default="res_18")
-    # parser.add_argument('--model', type=str, default="res_101")
-    # parser.add_argument('--model', type=str, default="res_wsl")
+    parser.add_argument('--model', type=str, default="resnet18")
+    # parser.add_argument('--model', type=str, default="resnext101")
+    # parser.add_argument('--model', type=str, default="resnext_wsl")
 
     parser.add_argument('--num-epochs', type=float, default=20)
     parser.add_argument('--print-interval', type=int, default=9999)
@@ -28,7 +28,7 @@ def init_args():
     parser.add_argument('--num-workers', type=int, default=16)
 
     parser.add_argument('--data-path', type=str, default="./data/")
-    parser.add_argument('--ckp-path', type=str, default="./log/model.tar")
+    parser.add_argument('--ckp-path', type=str, default="./log/train.tar")
     parser.add_argument('--save-path', type=str, default="./log/tmp/")
     if not os.path.exists(parser.parse_args().save_path):
         os.mkdir(parser.parse_args().save_path)
@@ -44,15 +44,24 @@ if __name__ == "__main__":
 
     if args.model == "wsdan":
         model = WSDAN(num_classes=2, M=32, net='inception_mixed_6e', pretrained=False)
-    elif args.model == "res_cbam":
+    elif args.model == "resnext101":
         model = resnext101_32x8d(pretrained=True, progress=True)
-        model.fc = nn.Sequential(nn.Dropout(0.5), nn.Linear(2048, 3))
-    elif args.model == "res_wsl":
+        model.fc = nn.Sequential(
+            nn.Dropout(0.5),
+            nn.Linear(2048, 3)
+        )
+    elif args.model == "resnext_wsl":
         model = resnext101_32x8d_wsl(progress=True)
-        model.fc = nn.Sequential(nn.Dropout(0.5), nn.Linear(2048, 3))
-    elif args.model == "res_18":
+        model.fc = nn.Sequential(
+            nn.Dropout(0.5),
+            nn.Linear(2048, 3)
+        )
+    elif args.model == "resnet18":
         model = resnet18(pretrained=True, progress=True)
-        model.fc = nn.Sequential(nn.Dropout(0.5), nn.Linear(512, 3))
+        model.fc = nn.Sequential(
+            nn.Dropout(0.5),
+            nn.Linear(512, 3)
+        )
     else:
         raise ValueError
     model.cuda()

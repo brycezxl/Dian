@@ -28,7 +28,7 @@ def train(model, train_loader, eval_loader, args):
     # warm_up_with_cosine_lr = lambda e: e / warm_up_epochs if e <= warm_up_epochs else 0.5 * (
     #         math.cos((e - warm_up_epochs) / (args.num_epochs - warm_up_epochs) * math.pi) + 1)
     # scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warm_up_with_cosine_lr)  # CosineAnnealingLR
-
+    #
     # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
