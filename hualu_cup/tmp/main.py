@@ -7,6 +7,7 @@ from models import *
 from test import test
 from train import train
 from utils import data_loader
+from utils.utils import setup_seed
 
 
 def init_args():
@@ -38,6 +39,7 @@ def init_args():
 
 if __name__ == "__main__":
 
+    setup_seed(2020)
     args = init_args()
     print(args)
     print("Start loading data")
@@ -49,6 +51,7 @@ if __name__ == "__main__":
         model.fc = nn.Sequential(nn.Dropout(0.5), nn.Linear(2048, 3))
     elif args.model == "res_wsl":
         model = resnext101_32x8d_wsl(progress=True)
+        # model = resnext101_32x16d_wsl(progress=True)
         model.fc = nn.Sequential(nn.Dropout(0.5), nn.Linear(2048, 3))
     elif args.model == "res_18":
         model = resnet18(pretrained=True, progress=True)

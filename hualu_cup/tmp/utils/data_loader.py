@@ -35,7 +35,7 @@ class BinaryClassifierDataset(torch.utils.data.Dataset):
                 torchvision.transforms.Resize(size=input_size),  # 缩放
                 # Resize(size=input_size),  # 等比填充缩放
                 # torchvision.transforms.RandomCrop(size=input_size),
-                # torchvision.transforms.RandomResizedCrop(size=input_size),
+                # torchvision.transforms.RandomResizedCrop(size=input_size, scale=(0.8, 1.0)),
                 torchvision.transforms.RandomHorizontalFlip(),
                 # RandomGaussianBlur(),
                 torchvision.transforms.ToTensor(),

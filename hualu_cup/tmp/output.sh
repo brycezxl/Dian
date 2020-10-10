@@ -1,1 +1,1 @@
-CUDA_VISIBLE_DEVICES=1 python3 main.py --mode test --model resnet18
+CUDA_VISIBLE_DEVICES=1 python3 main.py --mode test --model res_cbam

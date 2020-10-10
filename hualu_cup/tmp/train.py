@@ -32,7 +32,7 @@ def train(model, train_loader, eval_loader, args):
     # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
-    global_step, best_map, loss = 0, 0, 0
+    global_step, best_map, loss, t_remain = 0, 0, 0, 0
 
     for epoch in range(0, args.num_epochs, 1):
         running_loss = 0.0
@@ -62,9 +62,11 @@ def train(model, train_loader, eval_loader, args):
                 t = time.time()
             global_step += 1
 
-        print("==> [train] epoch = %2d, loss = %.2f, time per picture = %.2fs"
+        print("==> [train] epoch = %2d, loss = %.2f, time per picture = %.2fs, remaining time = %.1fh"
               % (epoch + 1, running_loss / len(train_loader),
-                 (time.time() - t) / len(train_loader) / args.batch_size))
+                 (time.time() - t) / len(train_loader) / args.batch_size,
+                 float(time.time() - t_remain) / 60.0 * (args.num_epochs - epoch - 1.0) if t_remain != 0 else -1))
+        t_remain = time.time()
         print("==> [eval train] ", end='')
         map_on_train, acc_on_train, precision_on_train, recall_on_train, eval_loss = evaluate(
             train_loader, model, criterion)
@@ -85,7 +87,7 @@ def train(model, train_loader, eval_loader, args):
 
         if map_on_valid > best_map:
             best_map = map_on_valid
-            if float(map_on_valid) > 0.92:
+            if float(map_on_valid) > 0.935:
                 torch.save({
                     "epoch": epoch,
                     "model_state_dict": model.state_dict(),
