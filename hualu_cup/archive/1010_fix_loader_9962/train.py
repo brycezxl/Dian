@@ -1,15 +1,14 @@
-import math
 import os
 import time
 
-import torch
 import torch.utils.data
 from tensorboardX import SummaryWriter
-from torch import optim, nn
+from torch import optim
 from tqdm import tqdm
 
 from eval import evaluate
-from models.label_smooth_ce_loss import LabelSmoothCELoss
+from models import *
+from utils.utils import sec2time
 
 
 def train(model, train_loader, eval_loader, args):
@@ -22,6 +21,7 @@ def train(model, train_loader, eval_loader, args):
     # criterion = LabelSmoothCELoss()
     # criterion = WeightedLabelSmoothCELoss(1978, 2168, 1227)
 
+    # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     # warm_up_epochs = 5
     # warm_up_with_cosine_lr = lambda e: e / warm_up_epochs if e <= warm_up_epochs else 0.5 * (
@@ -31,7 +31,7 @@ def train(model, train_loader, eval_loader, args):
     # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
     # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
-    global_step, best_map, loss = 0, 0, 0
+    global_step, best_map, loss, t_remain = 0, 0, 0, 0
 
     for epoch in range(0, args.num_epochs, 1):
         running_loss = 0.0
@@ -61,9 +61,11 @@ def train(model, train_loader, eval_loader, args):
                 t = time.time()
             global_step += 1
 
-        print("==> [train] epoch = %2d, loss = %.2f, time per picture = %.2fs"
+        print("==> [train] epoch = %2d, loss = %.2f, time per picture = %.2fs, remaining time = %s"
               % (epoch + 1, running_loss / len(train_loader),
-                 (time.time() - t) / len(train_loader) / args.batch_size))
+                 (time.time() - t) / len(train_loader) / args.batch_size,
+                 sec2time((time.time() - t_remain) * (args.num_epochs - epoch - 1)) if t_remain != 0 else '-1'))
+        t_remain = time.time()
         print("==> [eval train] ", end='')
         map_on_train, acc_on_train, precision_on_train, recall_on_train, eval_loss = evaluate(
             train_loader, model, criterion)
@@ -84,13 +86,9 @@ def train(model, train_loader, eval_loader, args):
 
         if map_on_valid > best_map:
             best_map = map_on_valid
-            if float(map_on_valid) > 0.85:
+            if float(map_on_valid) > 0.935:
                 torch.save({
-                    "epoch": epoch,
                     "model_state_dict": model.state_dict(),
-                    "optimizer_state_dict": optimizer.state_dict(),
-                    "global_step": global_step,
-                    'loss': loss,
                 }, os.path.join(args.save_path, "%.5f" % best_map + ".tar"))
             print("==> [best] mAP: %.5f" % best_map)
 

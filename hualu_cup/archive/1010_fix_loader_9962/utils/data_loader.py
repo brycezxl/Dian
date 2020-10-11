@@ -13,6 +13,7 @@ from PIL import ImageFile
 from torch.utils.data import Dataset
 from utils.transformer import *
 
+
 warnings.filterwarnings('ignore')
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -32,8 +33,9 @@ class BinaryClassifierDataset(torch.utils.data.Dataset):
             mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
             self.transforms = torchvision.transforms.Compose([
                 torchvision.transforms.Resize(size=input_size),  # 缩放
-                # Resize((input_size[0], input_size[1])),  # 等比填充缩放
-                torchvision.transforms.RandomCrop(size=input_size),
+                # Resize(size=input_size),  # 等比填充缩放
+                # torchvision.transforms.RandomCrop(size=input_size),
+                # torchvision.transforms.RandomResizedCrop(size=input_size, scale=(0.8, 1.0)),
                 torchvision.transforms.RandomHorizontalFlip(),
                 # RandomGaussianBlur(),
                 torchvision.transforms.ToTensor(),
@@ -62,18 +64,21 @@ class BinaryClassifierDataset(torch.utils.data.Dataset):
         if self.mode == 'train' or self.mode == 'eval':
             if self.img_list[idx].split('/')[-2] == "phone":
                 label = 2
+            elif self.img_list[idx].split('/')[-2] == "smoke":
+                label = 1
+            elif self.img_list[idx].split('/')[-2] == "normal":
+                label = 0
             elif self.img_list[idx].split('/')[-2] == "calling_images":
                 label = 2
             elif self.img_list[idx].split('/')[-2] == "smoking_images":
                 label = 1
-            elif self.img_list[idx].split('/')[-2] == "smoke":
-                label = 1
+            elif self.img_list[idx].split('/')[-2] == "normal_images":
+                label = 0
             # elif self.img_list[idx].split('/')[-2] == "5k_cigarettes":
             #     label = 1
-            elif self.img_list[idx].split('/')[-2] == "normal":
-                label = 0
             else:
-                label = 0
+                print(self.img_list[idx].split('/')[-2])
+                raise ValueError
             sample = {"image": img, "label": label}
         else:
             sample = {"image": img, "name": self.img_list[idx].split('/')[-1]}

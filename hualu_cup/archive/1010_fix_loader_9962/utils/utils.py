@@ -9,20 +9,39 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as f
 import torchvision.transforms as transforms
+import torch.backends.cudnn
+import torch.cuda
+
+
+def sec2time(sec):
+    """ Convert seconds to '#D days#, HH:MM:SS.FFF' """
+    if hasattr(sec, '__len__'):
+        return [sec2time(s) for s in sec]
+    m, s = divmod(sec, 60)
+    h, m = divmod(m, 60)
+    # d, h = divmod(h, 24)
+    if h == 0:
+        return r'%2dmin' % m
+    else:
+        return r'%2dh%2dmin' % (h, m)
+
+
+def setup_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
 
 
 def load_model(model, optimizer, ckp_path):
     checkpoint = torch.load(ckp_path)
     model.load_state_dict(checkpoint["model_state_dict"])
-    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-    epoch = checkpoint["epoch"]
-    loss = checkpoint["loss"]
-    global_step = checkpoint["global_step"]
     # try:
     #     global_step_ = checkpoint["global_step"]
     # except:
     #     global_step_ = 0
-    return model, optimizer, epoch, global_step, loss
+    return model
 
 
 ##############################################
@@ -132,7 +151,7 @@ class ModelCheckpoint(Callback):
             current_score = current_score[0]
 
         if (self.mode == 'max' and current_score > self.best_score) or \
-            (self.mode == 'min' and current_score < self.best_score):
+                (self.mode == 'min' and current_score < self.best_score):
             self.best_score = current_score
 
             if isinstance(net, torch.nn.DataParallel):
@@ -180,8 +199,8 @@ def batch_augment(images, attention_map, mode='crop', theta=0.5, padding_ratio=0
             width_max = min(int(nonzero_indices[:, 1].max().item() + padding_ratio * img_w), img_w)
 
             crop_images.append(
-                nn.functional.interpolate(images[batch_index:batch_index + 1, :, height_min:height_max, width_min:width_max],
-                                    size=(img_h, img_w)))
+                nn.functional.interpolate(images[batch_index:batch_index + 1, :, height_min:height_max,
+                                          width_min:width_max], size=(img_h, img_w)))
         crop_images = torch.cat(crop_images, dim=0)
         return crop_images
 

@@ -1,13 +1,14 @@
 import argparse
-import os
 
 import torch.utils.data
 
 from models import *
 from test import test
 from train import train
-from utils import data_loader
-from utils.utils import setup_seed
+from utils import *
+
+
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 def init_args():

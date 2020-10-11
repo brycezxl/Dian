@@ -1,15 +1,14 @@
-import math
 import os
 import time
 
-import torch
 import torch.utils.data
 from tensorboardX import SummaryWriter
-from torch import optim, nn
+from torch import optim
 from tqdm import tqdm
 
 from eval import evaluate
-from models.label_smooth_ce_loss import LabelSmoothCELoss
+from models import *
+from utils.utils import sec2time
 
 
 def train(model, train_loader, eval_loader, args):
@@ -62,10 +61,10 @@ def train(model, train_loader, eval_loader, args):
                 t = time.time()
             global_step += 1
 
-        print("==> [train] epoch = %2d, loss = %.2f, time per picture = %.2fs, remaining time = %.1fh"
+        print("==> [train] epoch = %2d, loss = %.2f, time per picture = %.2fs, remaining time = %s"
               % (epoch + 1, running_loss / len(train_loader),
                  (time.time() - t) / len(train_loader) / args.batch_size,
-                 float(time.time() - t_remain) / 60.0 * (args.num_epochs - epoch - 1.0) if t_remain != 0 else -1))
+                 sec2time((time.time() - t_remain) * (args.num_epochs - epoch - 1)) if t_remain != 0 else '-1'))
         t_remain = time.time()
         print("==> [eval train] ", end='')
         map_on_train, acc_on_train, precision_on_train, recall_on_train, eval_loss = evaluate(
@@ -89,11 +88,7 @@ def train(model, train_loader, eval_loader, args):
             best_map = map_on_valid
             if float(map_on_valid) > 0.935:
                 torch.save({
-                    "epoch": epoch,
                     "model_state_dict": model.state_dict(),
-                    "optimizer_state_dict": optimizer.state_dict(),
-                    "global_step": global_step,
-                    'loss': loss,
                 }, os.path.join(args.save_path, "%.5f" % best_map + ".tar"))
             print("==> [best] mAP: %.5f" % best_map)
 

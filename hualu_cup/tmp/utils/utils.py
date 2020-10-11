@@ -13,6 +13,19 @@ import torch.backends.cudnn
 import torch.cuda
 
 
+def sec2time(sec):
+    """ Convert seconds to '#D days#, HH:MM:SS.FFF' """
+    if hasattr(sec, '__len__'):
+        return [sec2time(s) for s in sec]
+    m, s = divmod(sec, 60)
+    h, m = divmod(m, 60)
+    # d, h = divmod(h, 24)
+    if h == 0:
+        return r'%2dmin' % m
+    else:
+        return r'%2dh%2dmin' % (h, m)
+
+
 def setup_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
@@ -24,15 +37,11 @@ def setup_seed(seed):
 def load_model(model, optimizer, ckp_path):
     checkpoint = torch.load(ckp_path)
     model.load_state_dict(checkpoint["model_state_dict"])
-    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-    epoch = checkpoint["epoch"]
-    loss = checkpoint["loss"]
-    global_step = checkpoint["global_step"]
     # try:
     #     global_step_ = checkpoint["global_step"]
     # except:
     #     global_step_ = 0
-    return model, optimizer, epoch, global_step, loss
+    return model
 
 
 ##############################################

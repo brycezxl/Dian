@@ -14,7 +14,7 @@ def test(data_loader, model, ckp_path):
     with torch.no_grad():
 
         optimizer = torch.optim.Adagrad(model.parameters())
-        model, _, _, _, _ = load_model(model, optimizer, ckp_path)
+        model = load_model(model, optimizer, ckp_path)
         model.eval()
 
         outputs = []

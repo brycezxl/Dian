@@ -3,8 +3,9 @@ import random
 
 
 class Resize(object):
+    # size = (h, w)
     def __init__(self, size, interpolation=Image.BILINEAR):
-        self.size = size
+        self.size = (size[1], size[0])
         self.interpolation = interpolation
 
     def __call__(self, img):

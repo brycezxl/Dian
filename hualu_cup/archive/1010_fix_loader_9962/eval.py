@@ -36,6 +36,7 @@ def evaluate(data_loader, model, criterion):
             tn += torch.sum((1 - predict) & (1 - label))
             fn += torch.sum((1 - predict) & label)
 
+        loss = total_loss / len(data_loader)
         acc = float(correct) / float(total)
         precision = (float(tp) + 1e-6) / (float(tp + fp) + 1e-3)
         recall = (float(tp) + 1e-6) / (float(tp + fn) + 1e-3)
@@ -44,4 +45,4 @@ def evaluate(data_loader, model, criterion):
               "loss = %.3f, acc = %.3f, p = %.3f, r = %.3f"
               "" % (m_ap, m_ap_normal, m_ap_smoke, m_ap_calling, loss, acc, precision, recall))
 
-    return m_ap, acc, precision, recall, total_loss / len(data_loader)
+    return m_ap, acc, precision, recall, loss
