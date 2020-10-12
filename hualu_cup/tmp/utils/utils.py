@@ -21,9 +21,9 @@ def sec2time(sec):
     h, m = divmod(m, 60)
     # d, h = divmod(h, 24)
     if h == 0:
-        return r'%2dmin' % m
+        return r'%dmin' % m
     else:
-        return r'%2dh%2dmin' % (h, m)
+        return r'%dh%dmin' % (h, m)
 
 
 def setup_seed(seed):

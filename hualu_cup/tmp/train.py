@@ -21,17 +21,27 @@ def train(model, train_loader, eval_loader, args):
     # criterion = LabelSmoothCELoss()
     # criterion = WeightedLabelSmoothCELoss(1978, 2168, 1227)
 
-    # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    # warm_up_epochs = 5
-    # warm_up_with_cosine_lr = lambda e: e / warm_up_epochs if e <= warm_up_epochs else 0.5 * (
-    #         math.cos((e - warm_up_epochs) / (args.num_epochs - warm_up_epochs) * math.pi) + 1)
-    # scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warm_up_with_cosine_lr)  # CosineAnnealingLR
+    fc_params = list(map(id, model.fc.parameters()))
+    base_params = filter(lambda p: id(p) not in fc_params, model.parameters())
+    if args.optim == 'Adam':
+        optimizer = optim.Adam([{'params': base_params, 'lr': args.lr / 10},
+                               {'params': model.fc.parameters()}], lr=args.lr)
 
-    # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
-    # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
+    # if args.optim == 'Adam':
+    #     optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    elif args.optim == 'SGD':
+        optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
+    else:
+        raise ValueError
 
-    global_step, best_map, loss, t_remain = 0, 0, 0, 0
+    if args.sche == 'Reduce':
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.2, patience=4)
+    elif args.sche == 'None':
+        scheduler = None
+    else:
+        raise ValueError
+
+    global_step, best_map, loss, t_remain, best_loss = 0, 0, 0, 0, 999.0
 
     for epoch in range(0, args.num_epochs, 1):
         running_loss = 0.0
@@ -41,7 +51,6 @@ def train(model, train_loader, eval_loader, args):
             image = data["image"].cuda()
             label = data["label"].cuda()
 
-            # scheduler.step()
             optimizer.zero_grad()
 
             predict = model(image)
@@ -61,36 +70,50 @@ def train(model, train_loader, eval_loader, args):
                 t = time.time()
             global_step += 1
 
-        print("==> [train] epoch = %2d, loss = %.2f, time per picture = %.2fs, remaining time = %s"
-              % (epoch + 1, running_loss / len(train_loader),
+        print("[train] epoch = %2d, loss = %.4f, lr = %.1e, time per picture = %.2fs, remaining time = %s"
+              % (epoch + 1, running_loss / len(train_loader), optimizer.state_dict()['param_groups'][0]['lr'],
                  (time.time() - t) / len(train_loader) / args.batch_size,
                  sec2time((time.time() - t_remain) * (args.num_epochs - epoch - 1)) if t_remain != 0 else '-1'))
         t_remain = time.time()
-        print("==> [eval train] ", end='')
-        map_on_train, acc_on_train, precision_on_train, recall_on_train, eval_loss = evaluate(
-            train_loader, model, criterion)
-        print("==> [eval valid] ", end='')
-        map_on_valid, acc_on_valid, precision_on_valid, recall_on_valid, eval_loss = evaluate(
+
+        # print("[eval train] ", end='')
+        # map_on_train, acc_on_train, precision_on_train, recall_on_train, loss_on_train = evaluate(
+        #     train_loader, model, criterion)
+        print("[eval valid] ", end='')
+        map_on_valid, acc_on_valid, precision_on_valid, recall_on_valid, loss_on_valid = evaluate(
             eval_loader, model, criterion)
 
-        # scheduler.step(eval_loss)  # ReduceLR
+        if args.sche == 'Reduce':
+            scheduler.step(loss_on_valid)  # ReduceLR
 
-        writer.add_scalar("scalar/mAP_on_train", map_on_train, global_step, time.time())
-        writer.add_scalar("scalar/mAP_on_train", map_on_valid, global_step, time.time())
-        writer.add_scalar("scalar/accuracy_on_train", acc_on_train, global_step, time.time())
+        # writer.add_scalar("scalar/loss_on_train", loss_on_train, global_step, time.time())
+        writer.add_scalar("scalar/loss_on_valid", loss_on_valid, global_step, time.time())
+        # writer.add_scalar("scalar/mAP_on_train", map_on_train, global_step, time.time())
+        writer.add_scalar("scalar/mAP_on_valid", map_on_valid, global_step, time.time())
+        # writer.add_scalar("scalar/loss_on_train", map_on_train, global_step, time.time())
+        writer.add_scalar("scalar/loss_on_valid", map_on_valid, global_step, time.time())
+        # writer.add_scalar("scalar/accuracy_on_train", acc_on_train, global_step, time.time())
         writer.add_scalar("scalar/accuracy_on_valid", acc_on_valid, global_step, time.time())
-        writer.add_scalar("scalar/precision_on_train", precision_on_train, global_step, time.time())
+        # writer.add_scalar("scalar/precision_on_train", precision_on_train, global_step, time.time())
         writer.add_scalar("scalar/precision_on_valid", precision_on_valid, global_step, time.time())
-        writer.add_scalar("scalar/recall_on_train", recall_on_train, global_step, time.time())
+        # writer.add_scalar("scalar/recall_on_train", recall_on_train, global_step, time.time())
         writer.add_scalar("scalar/recall_on_valid", recall_on_valid, global_step, time.time())
+
+        if loss_on_valid < best_loss:
+            best_loss = loss_on_valid
+            if float(loss_on_valid) < 0.18:
+                torch.save({
+                    "model_state_dict": model.state_dict(),
+                }, os.path.join(args.save_path, "loss_%.5f" % best_loss + ".tar"))
+            print("==> [best] loss: %.5f" % best_loss)
 
         if map_on_valid > best_map:
             best_map = map_on_valid
-            if float(map_on_valid) > 0.935:
+            if float(map_on_valid) > 0.93:
                 torch.save({
                     "model_state_dict": model.state_dict(),
-                }, os.path.join(args.save_path, "%.5f" % best_map + ".tar"))
+                }, os.path.join(args.save_path, "mAP_%.5f" % best_map + ".tar"))
             print("==> [best] mAP: %.5f" % best_map)
 
     writer.close()
-    print("Finish training.")
+    print("Done.")
