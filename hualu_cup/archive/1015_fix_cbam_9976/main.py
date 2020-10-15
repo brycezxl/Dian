@@ -15,8 +15,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 def init_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--mode', type=str, default="train", help='train/test')
-    # parser.add_argument('--mode', type=str, default="test", help='train/test')
+    # parser.add_argument('--mode', type=str, default="train", help='train/test')
+    parser.add_argument('--mode', type=str, default="test", help='train/test')
     parser.add_argument('--batch-size', type=int, default=8)
     parser.add_argument('--lr', type=float, default=3e-4)
     parser.add_argument('--optim', type=str, default="Adam")
@@ -26,10 +26,10 @@ def init_args():
 
     # parser.add_argument('--model', type=str, default="wsdan")
     # parser.add_argument('--model', type=str, default="res_18")
-    # parser.add_argument('--model', type=str, default="res_cbam")
+    parser.add_argument('--model', type=str, default="res_cbam")
     # parser.add_argument('--model', type=str, default="res_wsl")
     # parser.add_argument('--model', type=str, default="senet")
-    parser.add_argument('--model', type=str, default="efficient")
+    # parser.add_argument('--model', type=str, default="efficient")
     # parser.add_argument('--model', type=str, default="resnest")
 
     parser.add_argument('--factor', type=float, default=0.2)
@@ -63,8 +63,7 @@ if __name__ == "__main__":
     print("Start loading data")
 
     if args.model == "wsdan":
-        # model = WSDAN(num_classes=3, M=32, net='inception_mixed_6e', pretrained=True)
-        model = WSDAN(num_classes=3, M=32, net='resnest', pretrained=True)
+        model = WSDAN(num_classes=3, M=32, net='inception_mixed_6e', pretrained=True)
     elif args.model == "res_cbam":
         model = resnext101_32x8d(pretrained=True, progress=True)
         model.fc = nn.Sequential(nn.Dropout(0.5), nn.Linear(2048, 3))

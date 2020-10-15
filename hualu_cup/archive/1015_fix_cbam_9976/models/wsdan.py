@@ -14,7 +14,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from resnest.torch import resnest50, resnest101
+
 from models.inception import inception_v3, BasicConv2d
 
 __all__ = ['WSDAN']
@@ -75,10 +75,9 @@ class WSDAN(nn.Module):
                 self.num_features = 2048
             else:
                 raise ValueError('Unsupported net: %s' % net)
-        elif 'resnest' in net:
-            self.features = resnest50(pretrained=pretrained)
-            self.features = torch.nn.Sequential(*(list(self.features.children())[:-2]))
-            self.num_features = 2048
+        # elif 'resnet' in net:
+        #     self.features = getattr(resnet, net)(pretrained=pretrained).get_features()
+        #     self.num_features = 512 * self.features[-1][-1].expansion
         else:
             raise ValueError('Unsupported net: %s' % net)
 
